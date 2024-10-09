@@ -1,0 +1,272 @@
+C++ 
+
+PR1
+
+#include<iostream.h>
+#include<conio.h>
+
+class rectangle {
+	float length, width;
+	public:
+
+	void set(float l, float w){
+		length = 1;
+		width = 1;
+		if(l >= 0.0 && l <= 20.0 && w >=0.0 && w <=20.0){
+			length = l;
+			width = w;
+		}
+		else{
+			cout<<endl<<endl<<"Value should between 0.0 to 20.0"<<endl<<"Now by Default Value is 1"<<endl;
+		}
+	}
+	void get(){
+		cout<<endl<<"Value of Length is : "<<length<<endl;
+		cout<<"Value of Width is : "<<width<<endl;
+	}
+	int cal_perimeter(){
+		return (length + width) * 2;
+	}
+	int cal_area(){
+		return length*width;
+	}
+};
+
+
+int main(){
+	clrscr();
+	float temp_l, temp_w;
+
+	rectangle r1;
+
+	cout<<"Enter Length and Width for Rectangle"<<endl;
+	cout<<"Length : ";
+	cin>>temp_l;
+	cout<<"Width : ";
+	cin>>temp_w;
+
+
+	r1.set(temp_l,temp_w);
+	r1.get();
+	cout<<endl<<"Perimeter of Rectangle is : "<<r1.cal_perimeter();
+	cout<<endl<<"Area of Rectangle is : "<<r1.cal_area();
+	return 0;
+}
+
+
+PR2
+#include<iostream.h>
+#include<conio.h>
+#include <math.h>
+
+class Rectangle {
+private:
+    // Coordinates of the four corners (x1, y1) to (x4, y4)
+    double x1, y1, x2, y2, x3, y3, x4, y4;
+
+    // Helper method to calculate the distance between two points
+    double distance(double x1, double y1, double x2, double y2) {
+        return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+    }
+
+	 // Helper method to check if a point is valid (first quadrant and <= 20.0)
+	 bool isValidPoint(double x, double y) {
+		  return x >= 0 && x <= 20.0 && y >= 0 && y <= 20.0;
+	 }
+
+	 // Helper method to validate if the coordinates form a rectangle
+	 bool isValidRectangle(double x1, double y1, double x2, double y2,
+								  double x3, double y3, double x4, double y4) {
+		  double d1 = distance(x1, y1, x2, y2);
+		  double d2 = distance(x2, y2, x3, y3);
+		  double d3 = distance(x3, y3, x4, y4);
+		  double d4 = distance(x4, y4, x1, y1);
+
+		  double diagonal1 = distance(x1, y1, x3, y3);
+		  double diagonal2 = distance(x2, y2, x4, y4);
+
+		  // Opposite sides must be equal and diagonals must be equal for a valid rectangle
+		  return (d1 == d3 && d2 == d4 && diagonal1 == diagonal2);
+	 }
+
+public:
+	 // Constructor to initialize the rectangle with 4 corner coordinates
+	 Rectangle(double x1, double y1, double x2, double y2,
+				  double x3, double y3, double x4, double y4) {
+		  setCoordinates(x1, y1, x2, y2, x3, y3, x4, y4);
+	 }
+
+	 // Function to set coordinates after validation
+	 void setCoordinates(double x1, double y1, double x2, double y2,
+								double x3, double y3, double x4, double y4) {
+		  // Ensure all coordinates are within the first quadrant and <= 20.0
+		  if (isValidPoint(x1, y1) && isValidPoint(x2, y2) &&
+				isValidPoint(x3, y3) && isValidPoint(x4, y4)) {
+
+				// Check if the coordinates form a valid rectangle
+				if (isValidRectangle(x1, y1, x2, y2, x3, y3, x4, y4)) {
+					 this->x1 = x1; this->y1 = y1;
+					 this->x2 = x2; this->y2 = y2;
+					 this->x3 = x3; this->y3 = y3;
+					 this->x4 = x4; this->y4 = y4;
+				} else {
+					 throw invalid_argument("Coordinates do not form a valid rectangle.");
+				}
+		  } else {
+				throw invalid_argument("All coordinates must be in the first quadrant and <= 20.0.");
+		  }
+	 }
+
+	 // Method to calculate the length (larger of two sides)
+	 double getLength() {
+		  double side1 = distance(x1, y1, x2, y2);
+		  double side2 = distance(x2, y2, x3, y3);
+		  return max(side1, side2);
+	 }
+
+	 // Method to calculate the width (smaller of two sides)
+	 double getWidth() {
+		  double side1 = distance(x1, y1, x2, y2);
+		  double side2 = distance(x2, y2, x3, y3);
+		  return min(side1, side2);
+	 }
+
+	 // Method to calculate the perimeter
+	 double getPerimeter() {
+		  return 2 * (getLength() + getWidth());
+	 }
+
+	 // Method to calculate the area
+	 double getArea() {
+		  return getLength() * getWidth();
+	 }
+
+	 // Method to check if the rectangle is a square
+	 bool isSquare() {
+		  return getLength() == getWidth();
+	 }
+
+	 // Method to display rectangle details
+	 void displayRectangle() {
+		  cout << "Rectangle Coordinates: \n";
+		  cout << "(" << x1 << ", " << y1 << "), (" << x2 << ", " << y2 << "), ("
+				 << x3 << ", " << y3 << "), (" << x4 << ", " << y4 << ")\n";
+		  cout << "Length: " << getLength() << "\n";
+		  cout << "Width: " << getWidth() << "\n";
+		  cout << "Perimeter: " << getPerimeter() << "\n";
+		  cout << "Area: " << getArea() << "\n";
+		  cout << "Is Square: " << (isSquare() ? "Yes" : "No") << "\n";
+	 }
+};
+
+int main() {
+	 try {
+		  // Creating a rectangle using valid coordinates
+		  Rectangle rect(0, 0, 0, 4, 4, 4, 4, 0);
+		  rect.displayRectangle();  // Display details of the rectangle
+	 } catch (invalid_argument &e) {
+		  cout << e.what() << endl;
+	 }
+
+	 return 0;
+}
+
+
+
+JAVA 
+
+PR1
+
+
+import java.util.Scanner;
+
+public class AssPR1 {
+    public int Arr[] = new int[50];
+    public int size = 0;
+    
+    public void insert(int val){
+        Arr[size] = val;
+        System.out.println("\n\n----- Value Inserted at Position "+size+" -----");
+        size++;
+    }
+    
+    public void insertAtPos(int val, int pos){
+        for(int i = size; i>=pos; i--){
+            Arr[i+1] = Arr[i];//temp1;
+        }
+        Arr[pos] = val;
+        System.out.println("\n\n----- Value Inserted at Position "+pos+" -----");
+        size++;
+    }
+    
+    public void delete(int val){
+        int i;
+        for(i = 0; i <= size; i++){
+            if(Arr[i] == val)
+                break;
+        }
+        for(int j = i; j < size; j++)
+            Arr[j] = Arr[j+1];        
+        if(i <= size)
+            System.out.println("\n\n----- Record Found and Deleted -----");
+        else
+            System.out.println("\n\n----- Record Not Found -----");
+        size--;
+    }
+    
+    public void display(){
+        int count = 0;
+        for(int i = 0; i < size; i++){
+            count++;
+            System.out.println(Arr[i]);
+        }
+        System.out.println("\n\n----- "+count+" Records Found -----");
+    }
+
+    public static void main(String[] args) {
+        
+        AssPR1 obj = new AssPR1();
+        int choice = 1;
+        int temp, pos;
+
+        Scanner scan = new Scanner(System.in);
+
+        while (choice != 0) {
+            System.out.println("\n\n----- Choose What you want to do -----\n\n"
+                    + "1. for Insertion\n"
+                    + "2. for Insert at Position\n"
+                    + "3. for Deletion\n"
+                    + "4. for Display\n"
+                    + "0 to Exit");
+            System.out.print("\nEnter Choice : ");
+            choice = scan.nextInt();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("\nEnter Value you Want to Insert : ");
+                    temp = scan.nextInt();
+                    obj.insert(temp);
+                    break;
+                case 2:
+                    System.out.print("\nEnter Value you Want to Insert : ");
+                    temp = scan.nextInt();
+                    System.out.print("Enter Position where you want to Insert : ");
+                    pos = scan.nextInt();
+                    obj.insertAtPos(temp, pos);
+                    break;
+                case 3:
+                    System.out.print("\nEnter Value you want to Delete : ");
+                    temp = scan.nextInt();
+                    obj.delete(temp);
+                    break;
+                case 4:
+                    System.out.println("\n\n---- Here is All Records ----\n\n");
+                    obj.display();
+                    break;
+                default:
+                    System.out.print("\nEntered choice is Wrong, Please Try Again");
+                    break;
+            }
+        }
+    }
+}
