@@ -1,0 +1,326 @@
+//Class File for Core DAta
+import UIKit
+import CoreData
+import Foundation
+
+class conn {
+    
+    static let shared = conn()
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    var managedobjContext: NSManagedObjectContext!
+    
+    private init() {
+        managedobjContext = appDelegate.persistentContainer.viewContext
+    }
+    
+    func save(){
+        appDelegate.saveContext()
+    }
+    
+    func insert(name:String, mobile:String){
+        let cnct = Contact(context: managedobjContext)
+        cnct.name = name
+        cnct.mobile = mobile
+        save()
+//        print("Name : \(name),  Mobile : \(mobile)")
+    }
+    
+    func update(cnct:Contact, name:String, mobile:String){
+        cnct.name = name
+        cnct.mobile = mobile
+        save()
+    }
+    
+    func delete(cnct:Contact){
+        managedobjContext?.delete(cnct)
+        save()
+    }
+    
+    func fetch() -> [Contact] {
+        let fetchRequest : NSFetchRequest<Contact> = Contact.fetchRequest()
+        do{
+            let contactArray = try managedobjContext!.fetch(fetchRequest)
+            return contactArray
+        }catch {
+            print(error)
+            return [Contact]()
+        }
+    }
+    
+    func findContact(name:String, mobile:String) -> Contact? {
+        let list = fetch()
+        
+        for contact in list {
+            if contact.name == name || contact.mobile == mobile {
+                return contact
+            }
+        }
+        return nil
+    }
+}
+
+
+//Main VC
+
+import UIKit
+
+class ViewController: UIViewController {
+    
+    @IBOutlet weak var tableView: UITableView!
+    
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        loadContacts()
+    }
+    
+    
+    var contacts : [Contact] = []
+    func loadContacts() {
+        contacts = conn.shared.fetch()
+        tableView.reloadData()
+    }
+}
+
+extension ViewController : UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return contacts.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let contact = contacts[indexPath.row]
+        
+        cell.textLabel?.text = contact.name
+        cell.detailTextLabel?.text = contact.mobile
+        
+        
+        return cell
+    }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        let selectedContact = contacts[indexPath.row]
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let detailVC = storyboard.instantiateViewController(withIdentifier: "ContactDetailVC") as? updateListVC else {
+            print("Error: Couldn't instantiate detail VC")
+            return
+        }
+        
+        detailVC.contact = selectedContact
+        
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+}
+
+
+
+//Add Contact VC
+
+
+import UIKit
+
+class addContactVC: UIViewController {
+
+    @IBOutlet weak var name: UITextField!
+    @IBOutlet weak var mobile: UITextField!
+    var _name = ""
+    var _mobile = ""
+    
+    var contact: Contact!
+    
+    func showAlert(title:String, msg:String) {
+        let alert = UIAlertController(title: title, message: msg, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Okay", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil	)
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    
+    @IBAction func addContact(_ sender: UIButton) {
+        _name = name.text!
+        _mobile = mobile.text!
+        
+        if _name == "" && _mobile == "" {
+            return
+        }
+        
+        if conn.shared.findContact(name: _name, mobile: _mobile) == nil  {
+            conn.shared.insert(name: _name, mobile: _mobile)
+            showAlert(title: "Added", msg: "Contact Added into the List Successfully")
+            name.text = ""
+            mobile.text = ""
+        }
+        else{
+            showAlert(title: "Already Exists", msg: "This Contact Already Exists in the List")
+        }
+    }
+}
+
+
+//Update - Delete VC
+
+
+//
+//  updateListVC.swift
+//  contactApp
+//
+//  Created by DCS on 10/04/25.
+//  Copyright © 2025 DCS. All rights reserved.
+//
+
+import UIKit
+
+class updateListVC: UIViewController {
+
+    func goBack(){
+        navigationController?.popViewController(animated: true)
+    }
+    
+    func showAlert(title:String, msg:String) {
+        let alert = UIAlertController(title: title, message: msg, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Okay", style: .default) { [weak self] _ in
+            self?.goBack()
+        })
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    @IBOutlet weak var name: UITextField!
+    @IBOutlet weak var mobile: UITextField!
+    
+    var contact: Contact!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        name.text = contact.name
+        mobile.text = contact.mobile
+    }    
+    @IBAction func updateBtn(_ sender: UIButton) {
+        var _name = ""
+        var _mobile = ""
+        _name = name.text!
+        _mobile = mobile.text!
+        
+        if _name == "" || _mobile == "" {
+            return
+        }
+        conn.shared.update(cnct:contact, name: _name, mobile: _mobile)
+        showAlert(title: "Updated", msg: "Contact Updated into the List Successfully")
+        name.text = ""
+        mobile.text = ""
+    }
+    @IBAction func deleteBtn(_ sender: UIButton) {
+        conn.shared.delete(cnct: contact)
+        showAlert(title: "Deleted", msg: "Contact Deleted From the List Successfully")
+        name.text = ""
+        mobile.text = ""
+    }
+}
+
+
+//Block Chainnn
+
+//PR2
+
+contract HotelRoom { 
+    address payable public owner; 
+    bool public isOccupied; 
+    address public currentGuest; 
+    uint public roomPrice; 
+    constructor(uint _price) { 
+        owner = payable(msg.sender); 
+        roomPrice = _price; 
+        isOccupied = false; 
+    } 
+    function rentRoom() public payable { 
+        require(!isOccupied, "Room is already occupied"); 
+        require(msg.value >= roomPrice, "Insufficient payment"); 
+        isOccupied = true; 
+        currentGuest = msg.sender; 
+        owner.transfer(msg.value); 
+    } 
+    function vacateRoom() public { 
+        require(msg.sender == owner, "Only owner can vacate the 
+room"); 
+        require(isOccupied, "Room is already vacant"); 
+        isOccupied = false; 
+        currentGuest = address(0); 
+    } 
+ 
+    function isRoomAvailable() public view returns (bool) { 
+        return !isOccupied; 
+    } 
+}
+
+//PR4
+
+contract StudentRecords { 
+    struct Student { 
+        string name;      string program; 
+        uint semester;     uint totalMarks; 
+        bool exists; 
+    } 
+    mapping(string => Student) private students; 
+    function addStudent( 
+        string memory enrolmentNo,  string memory name, 
+        string memory program,  uint semester, 
+        uint totalMarks 
+    ) public { 
+        require(!students[enrolmentNo].exists, "Student already 
+exists"); 
+        students[enrolmentNo] = Student(name, program, semester, 
+totalMarks, true); 
+    } 
+    function verifyStudent(string memory enrolmentNo) public view 
+returns ( 
+        string memory name, 
+        string memory program, 
+        uint semester, 
+        uint totalMarks 
+    ) { 
+        require(students[enrolmentNo].exists, "Student not found"); 
+        Student memory s = students[enrolmentNo]; 
+        return (s.name, s.program, s.semester, s.totalMarks); 
+    } 
+}
+
+
+//PR10
+
+contract DecentralizedID { 
+    struct Identity { 
+        string name; 
+        string nationalID; 
+        string email; 
+        bool isRegistered; 
+    } 
+    mapping(address => Identity) private identities; 
+    function registerIdentity(string memory name, string memory 
+nationalID, string memory email) public { 
+        require(!identities[msg.sender].isRegistered, "Identity already 
+registered"); 
+        identities[msg.sender] = Identity({ 
+            name: name, 
+            nationalID: nationalID, 
+            email: email, 
+            isRegistered: true 
+        }); 
+    } 
+    function verifyIdentity(address user) public view returns (string 
+memory, string memory, string memory) { 
+        require(identities[user].isRegistered, "Identity not found"); 
+        Identity memory id = identities[user]; 
+        return (id.name, id.nationalID, id.email); 
+    } 
+    function isRegistered(address user) public view returns (bool) { 
+        return identities[user].isRegistered; 
+    } 
+}
